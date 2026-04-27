@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://TU-API.railway.app/api'   // ← cambia esto en Railway
+  apiUrl: 'https://facturacion-api-ph4d.onrender.com'   // ← cambia esto en Railway
 };
