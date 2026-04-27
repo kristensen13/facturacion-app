@@ -1,6 +1,13 @@
 // Seed inicial con los datos del Excel de Sebastian
 const db = require('./db');
 
+// Si ya hay datos no hacer nada (evita duplicados en cada arranque)
+const yaInicializado = db.prepare('SELECT COUNT(*) as count FROM empresa').get();
+if (yaInicializado.count > 0) {
+  console.log('✅ Base de datos ya inicializada, omitiendo seed.');
+  return;  // <- sale sin hacer nada
+}
+
 console.log('🌱 Iniciando seed de la base de datos...');
 
 // Datos de la empresa (del Excel - hoja General)

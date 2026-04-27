@@ -1,4 +1,8 @@
 require('dotenv').config();
+
+// Ejecutar seed automáticamente si la BD está vacía
+require('./database/seed.js'); 
+
 const express = require('express');
 const cors    = require('cors');
 const db      = require('./database/db');
