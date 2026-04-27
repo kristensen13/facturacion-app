@@ -1,0 +1,54 @@
+<tui-root>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">📋</span>
+        <span class="brand-name">Facturación</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a routerLink="/dashboard"      routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a routerLink="/nueva-factura"  routerLinkActive="active" class="nav-item nav-item--cta">
+          <span class="nav-icon">➕</span> Nueva Factura
+        </a>
+        <a routerLink="/nuevo-presupuesto" routerLinkActive="active" class="nav-item nav-item--cta" style="margin-top: 8px;">
+          <span class="nav-icon">➕</span> Nuevo Presup.
+        </a>
+        <a routerLink="/facturas"       routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🗂️</span> Facturas
+        </a>
+        <a routerLink="/presupuestos"   routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📝</span> Presupuestos
+        </a>
+        <a routerLink="/clientes"       routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">👥</span> Clientes
+        </a>
+        <a routerLink="/catalogo"       routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📦</span> Catálogo
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="empresa-info" *ngIf="empresa">
+          <div class="empresa-name">{{ empresa.nombre | titlecase }}</div>
+          <div class="empresa-nif">NIF: {{ empresa.nif }}</div>
+        </div>
+        <div style="display:flex; justify-content:center; margin-top:12px;">
+          <button class="theme-toggle"
+                  (click)="toggleTheme()"
+                  [title]="isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
+                  [attr.aria-label]="isDark ? 'Activar modo claro' : 'Activar modo oscuro'">
+            {{ isDark ? '☀️' : '🌙' }}
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</tui-root>

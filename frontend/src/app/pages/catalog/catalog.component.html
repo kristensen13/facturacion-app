@@ -1,0 +1,63 @@
+<div class="page-header">
+  <div>
+    <h1>Catálogo de servicios</h1>
+    <p>{{ items.length }} concepto(s) disponibles en el autocompletado de facturas</p>
+  </div>
+  <button class="btn btn--accent" (click)="abrirNuevo()">+ Nuevo concepto</button>
+</div>
+
+<div class="catalog-grid">
+  <div class="catalog-card" *ngFor="let item of items">
+    <div class="catalog-card-body">
+      <div class="cc-concepto">{{ item.concepto }}</div>
+      <div class="cc-desc" *ngIf="item.descripcion">{{ item.descripcion }}</div>
+    </div>
+    <div class="catalog-card-footer">
+      <span class="cc-precio" *ngIf="item.precio">{{ item.precio | number:'1.2-2' }} €</span>
+      <span class="cc-precio cc-precio--libre" *ngIf="!item.precio">Precio libre</span>
+      <div class="actions">
+        <button class="btn btn--outline btn--sm" (click)="editar(item)">✏</button>
+        <button class="btn btn--danger btn--sm" (click)="eliminar(item)">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="catalog-empty" *ngIf="!items.length">
+    <p>No hay conceptos en el catálogo.</p>
+    <button class="btn btn--accent" (click)="abrirNuevo()">Añadir el primero</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" *ngIf="mostrarModal" (click)="cerrarModal()"></div>
+<div class="modal" *ngIf="mostrarModal">
+  <div class="modal-header">
+    <h2>{{ editandoId ? 'Editar concepto' : 'Nuevo concepto' }}</h2>
+    <button class="modal-close" (click)="cerrarModal()">✕</button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="guardar()" class="modal-body">
+    <div class="form-group">
+      <label class="form-label">Concepto *</label>
+      <input class="form-control" formControlName="concepto" placeholder="Ej: Desplazamiento y mano de obra" [class.is-invalid]="isInvalid('concepto')">
+      <span class="form-error" *ngIf="isInvalid('concepto')">Campo obligatorio</span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción (opcional)</label>
+      <textarea class="form-control" formControlName="descripcion" rows="2" placeholder="Detalle adicional que aparecerá en la factura"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Precio por defecto (€, opcional)</label>
+      <input type="number" class="form-control" formControlName="precio" step="0.01" min="0" placeholder="Dejar vacío si el precio varía">
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn--outline" (click)="cerrarModal()">Cancelar</button>
+      <button type="submit" class="btn btn--primary" [disabled]="guardando">
+        {{ guardando ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" [class.toast--success]="toast.tipo==='success'" [class.toast--error]="toast.tipo==='error'" *ngIf="toast">
+  {{ toast.msg }}
+</div>

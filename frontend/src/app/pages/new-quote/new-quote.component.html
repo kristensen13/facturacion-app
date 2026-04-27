@@ -1,0 +1,180 @@
+<div class="page-header">
+  <div>
+    <h1>{{ editandoId ? 'Editar presupuesto #' + nextNumero : 'Nuevo presupuesto' }}</h1>
+    <p>{{ editandoId ? 'Modifica los datos del presupuesto' : 'Presupuesto Nº ' + nextNumero + ' · ' + fechaFormateada }}</p>
+  </div>
+  <button class="btn btn--outline" (click)="cancelar()">← Volver</button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="guardar()">
+  <div class="invoice-layout">
+
+    <!-- Columna izquierda: datos -->
+    <div class="invoice-main">
+
+      <!-- Sección cliente y fecha -->
+      <div class="card">
+        <h3 class="section-title">Datos del presupuesto</h3>
+        <div class="form-row form-row--2">
+          <div class="form-group" style="min-width: 200px;">
+            <tui-select formControlName="cliente_id" [valueContent]="clienteContent">
+              Cliente *
+              <ng-template tuiDataList>
+                <tui-data-list>
+                  <button *ngFor="let c of clientes" tuiOption [value]="c.id">
+                    {{ c.nombre }}
+                  </button>
+                </tui-data-list>
+              </ng-template>
+            </tui-select>
+            <ng-template #clienteContent let-id>
+              {{ getClienteNombre(id) || '— Seleccionar cliente —' }}
+            </ng-template>
+            <span class="form-error" *ngIf="isInvalid('cliente_id')">Selecciona un cliente</span>
+          </div>
+          <div class="form-group" style="min-width: 150px;">
+            <tui-input-date formControlName="fecha">
+              Fecha *
+            </tui-input-date>
+          </div>
+        </div>
+        <div class="form-row form-row--2">
+          <div class="form-group" style="min-width: 150px;">
+            <tui-input-date formControlName="validez_hasta">
+              Validez hasta
+            </tui-input-date>
+          </div>
+          <div class="form-group" style="min-width: 150px;">
+            <tui-select formControlName="estado">
+              Estado
+              <tui-data-list-wrapper *tuiDataList [items]="['Borrador', 'Enviado', 'Aceptado', 'Rechazado']"></tui-data-list-wrapper>
+            </tui-select>
+          </div>
+        </div>
+
+        <!-- Info cliente seleccionado -->
+        <div class="cliente-info" *ngIf="clienteSeleccionado">
+          <div class="ci-row">
+            <span class="ci-label">NIF/CIF</span>
+            <span>{{ clienteSeleccionado.nif }}</span>
+          </div>
+          <div class="ci-row">
+            <span class="ci-label">Dirección</span>
+            <span>{{ clienteSeleccionado.direccion }}, {{ clienteSeleccionado.ciudad }}</span>
+          </div>
+          <div class="ci-row">
+            <span class="ci-label">IVA aplicado</span>
+            <span>{{ (ivaPorc * 100) | number:'1.0-0' }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Líneas de factura -->
+      <div class="card mt-2">
+        <h3 class="section-title">Conceptos y servicios</h3>
+
+        <div formArrayName="lineas">
+          <div class="linea-header">
+            <span class="linea-col-concepto">Concepto</span>
+            <span class="linea-col-importe">Importe (€)</span>
+            <span class="linea-col-actions"></span>
+          </div>
+
+          <div class="linea-row" *ngFor="let linea of lineas; let i = index" [formGroupName]="i">
+            <div class="linea-col-concepto">
+              <tui-input formControlName="concepto">
+                Concepto
+                <input tuiTextfield list="catalogo-list" />
+              </tui-input>
+              <datalist id="catalogo-list">
+                <option *ngFor="let item of catalogo" [value]="item.concepto"></option>
+              </datalist>
+            </div>
+            <div class="linea-col-importe">
+              <tui-input-number formControlName="importe" [min]="0" [precision]="2" [step]="0.01">
+                Importe (€)
+              </tui-input-number>
+            </div>
+            <div class="linea-col-actions">
+              <button type="button" class="btn-del" (click)="eliminarLinea(i)"
+                      [disabled]="lineas.length === 1" title="Eliminar línea">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" tuiButton appearance="outline" size="s" class="mt-1" (click)="agregarLinea()">
+          + Añadir concepto
+        </button>
+
+        <div class="catalogo-shortcuts" *ngIf="catalogo.length">
+          <span class="shortcuts-label">Accesos rápidos del catálogo:</span>
+          <div class="shortcuts-list">
+            <button type="button" class="shortcut-btn"
+                    *ngFor="let item of catalogo"
+                    (click)="usarConcepto(lineas.length - 1, item)"
+                    [title]="item.precio ? (item.precio + '€') : 'Sin precio fijo'">
+              {{ item.concepto | slice:0:35 }}{{ item.concepto.length > 35 ? '…' : '' }}
+              <span class="shortcut-price" *ngIf="item.precio">{{ item.precio }}€</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="card mt-2">
+        <h3 class="section-title">Notas adicionales</h3>
+        <tui-text-area formControlName="notas" [expandable]="true">
+          Notas adicionales
+        </tui-text-area>
+      </div>
+    </div>
+
+    <!-- Columna derecha: resumen -->
+    <div class="invoice-sidebar">
+      <div class="card totales-card">
+        <h3 class="section-title">Resumen</h3>
+
+        <div class="total-row">
+          <span>Base imponible</span>
+          <span class="text-money">{{ formatEuro(baseImponible) }}</span>
+        </div>
+        <div class="total-row">
+          <span>IVA ({{ ivaPorc * 100 | number:'1.0-0' }}%)</span>
+          <span class="text-money">{{ formatEuro(cuotaIVA) }}</span>
+        </div>
+        <div class="total-divider"></div>
+        <div class="total-row total-row--final">
+          <span>TOTAL</span>
+          <span class="text-money total-value">{{ formatEuro(totalFactura) }}</span>
+        </div>
+
+        <div class="actions-col">
+          <button type="submit" tuiButton size="m" appearance="primary" class="w-full" [showLoader]="guardando" [disabled]="guardando || form.invalid">
+            💾 Guardar presupuesto
+          </button>
+          <button type="button" tuiButton size="m" appearance="accent" class="w-full" (click)="guardar(true)" [showLoader]="guardando" [disabled]="guardando || form.invalid">
+            📄 Guardar y abrir PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview emisor -->
+      <div class="card preview-card mt-2" *ngIf="clienteSeleccionado">
+        <h4 class="preview-title">Vista previa</h4>
+        <div class="preview-factura">
+          <div class="pf-numero">Presupuesto Nº {{ nextNumero }}</div>
+          <div class="pf-fecha">{{ fechaFormateada }}</div>
+          <div class="pf-cliente">{{ clienteSeleccionado.nombre }}</div>
+          <div class="pf-nif">{{ clienteSeleccionado.nif }}</div>
+          <div class="pf-total">{{ formatEuro(totalFactura) }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<!-- Toast -->
+<div class="toast" [class.toast--success]="toast.tipo === 'success'" [class.toast--error]="toast.tipo === 'error'" *ngIf="toast">
+  {{ toast.msg }}
+</div>

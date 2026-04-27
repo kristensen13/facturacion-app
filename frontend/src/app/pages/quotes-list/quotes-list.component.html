@@ -1,0 +1,161 @@
+<div class="page-header">
+  <div>
+    <h1>Presupuestos</h1>
+    <p>{{ presupuestos.length }} presupuesto(s) registrado(s)</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn--accent btn--sm" (click)="nuevoPresupuesto()">+ Nuevo presupuesto</button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="card filtros-card">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label class="form-label">Buscar</label>
+      <input type="text" class="form-control" placeholder="Número o cliente..."
+             [(ngModel)]="filtro.search" (keyup.enter)="buscar()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-control" [(ngModel)]="filtro.estado" (change)="buscar()">
+        <option value="">Todos</option>
+        <option value="Borrador">Borrador</option>
+        <option value="Enviado">Enviado</option>
+        <option value="Aceptado">Aceptado</option>
+        <option value="Rechazado">Rechazado</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cliente</label>
+      <select class="form-control" [(ngModel)]="filtro.cliente_id" (change)="buscar()">
+        <option value="">Todos</option>
+        <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Año</label>
+      <select class="form-control" [(ngModel)]="filtro.ano" (change)="buscar()">
+        <option *ngFor="let a of anos" [value]="a">{{ a }}</option>
+      </select>
+    </div>
+    <div class="filtros-actions">
+      <button class="btn btn--primary" (click)="buscar()">🔍 Buscar</button>
+      <button class="btn btn--outline" (click)="limpiarFiltros()">✕ Limpiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="card mt-2">
+  <div class="table-wrap" *ngIf="!cargando">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nº</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Validez hasta</th>
+          <th class="text-right">Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of presupuestos" [class.row-anulada]="p.estado === 'Rechazado'">
+          <td class="text-primary"><strong>#{{ p.numero }}</strong></td>
+          <td class="text-primary">{{ p.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <button class="cliente-nombre-btn" (click)="verCliente(p.cliente_id)" title="Ver información del cliente">
+              {{ p.cliente_nombre }}
+            </button>
+          </td>
+          <td class="text-primary">{{ p.validez_hasta ? (p.validez_hasta | date:'dd/MM/yyyy') : '—' }}</td>
+          <td class="text-money text-right text-primary"><strong>{{ formatEuro(p.total || 0) }}</strong></td>
+          <td>
+            <select class="estado-select badge badge--{{ p.estado | lowercase }}"
+                    [value]="p.estado"
+                    (change)="cambiarEstado(p, $any($event.target).value)">
+              <option value="Borrador">Borrador</option>
+              <option value="Enviado">Enviado</option>
+              <option value="Aceptado">Aceptado</option>
+              <option value="Rechazado">Rechazado</option>
+            </select>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn btn--outline btn--sm" (click)="abrirPDF(p.id!)" title="Ver PDF">PDF</button>
+              <a class="btn btn--outline btn--sm" [routerLink]="['/nuevo-presupuesto', p.id]" title="Editar">✏</a>
+              <button class="btn btn--primary btn--sm" (click)="abrirModalEnvio(p)" title="Enviar">📤</button>
+              <button class="btn btn--danger btn--sm"
+                      (click)="eliminarPresupuesto(p.id!, p.numero!)"
+                      title="Eliminar">✕</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!presupuestos.length">
+          <td colspan="7" style="text-align:center;padding:32px;color:var(--color-muted)">
+            No se encontraron presupuestos con esos filtros
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Skeleton loading -->
+  <div *ngIf="cargando">
+    <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+  </div>
+</div>
+
+<!-- Modal de envío -->
+<div class="modal-backdrop" *ngIf="showingSendModal" (click)="cerrarModalEnvio()"></div>
+<div class="modal" *ngIf="showingSendModal">
+  <div class="modal-header">
+    <h2>Enviar presupuesto #{{ presupuestoSeleccionado?.numero }}</h2>
+    <button class="modal-close" (click)="cerrarModalEnvio()">✕</button>
+  </div>
+  <div class="modal-body">
+    <p class="text-muted mb-4">Selecciona cómo quieres enviar este presupuesto:</p>
+
+    <div class="d-flex flex-column gap-2">
+      <button class="btn btn--outline w-full justify-start align-center" (click)="enviarPorEmail()">
+        <span class="mr-2 text-2xl">📧</span>
+        <div class="text-left flex-1">
+          <div class="font-bold">Email</div>
+          <div class="text-sm text-muted">{{ presupuestoSeleccionado?.cliente?.email || 'Sin email registrado' }}</div>
+        </div>
+      </button>
+
+      <button class="btn btn--outline w-full justify-start align-center" (click)="enviarPorWhatsApp()">
+        <span class="mr-2 text-2xl">💬</span>
+        <div class="text-left flex-1">
+          <div class="font-bold">WhatsApp</div>
+          <div class="text-sm text-muted">{{ presupuestoSeleccionado?.cliente?.telefono || 'Sin teléfono registrado' }}</div>
+        </div>
+      </button>
+
+      <button class="btn btn--outline w-full justify-start align-center" (click)="imprimirPDF()">
+        <span class="mr-2 text-2xl">🖨️</span>
+        <div class="text-left flex-1">
+          <div class="font-bold">Imprimir</div>
+          <div class="text-sm text-muted">Imprimir PDF del presupuesto</div>
+        </div>
+      </button>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn--outline" (click)="cerrarModalEnvio()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Popup info cliente -->
+<app-cliente-info-popup
+  *ngIf="clientePopup"
+  [cliente]="clientePopup"
+  (cerrar)="cerrarPopup()">
+</app-cliente-info-popup>
+
+<div class="toast" [class.toast--success]="toast.tipo==='success'" [class.toast--error]="toast.tipo==='error'" *ngIf="toast">
+  {{ toast.msg }}
+</div>

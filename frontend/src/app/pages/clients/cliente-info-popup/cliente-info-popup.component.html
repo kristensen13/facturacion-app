@@ -1,0 +1,64 @@
+<div class="cip-backdrop" (click)="cerrar.emit()"></div>
+
+<div class="cip-panel" role="dialog" aria-modal="true" [attr.aria-label]="'Información de ' + cliente.nombre">
+
+  <!-- Header -->
+  <div class="cip-header">
+    <div class="cip-avatar">{{ cliente.nombre.charAt(0).toUpperCase() }}</div>
+    <div class="cip-header-info">
+      <h3 class="cip-nombre">{{ cliente.nombre }}</h3>
+      <span class="cip-nif">NIF/CIF: {{ cliente.nif }}</span>
+    </div>
+    <button class="cip-close" (click)="cerrar.emit()" title="Cerrar" aria-label="Cerrar popup">✕</button>
+  </div>
+
+  <!-- Body -->
+  <div class="cip-body">
+
+    <!-- Dirección -->
+    <div class="cip-row" *ngIf="direccionCompleta !== '—'">
+      <span class="cip-icon">📍</span>
+      <div>
+        <span class="cip-row-label">Dirección</span>
+        <span class="cip-row-value">{{ direccionCompleta }}</span>
+      </div>
+    </div>
+
+    <!-- Teléfono -->
+    <div class="cip-row" *ngIf="cliente.telefono">
+      <span class="cip-icon">📞</span>
+      <div>
+        <span class="cip-row-label">Teléfono</span>
+        <a class="cip-row-value cip-link" [href]="'tel:' + cliente.telefono">{{ cliente.telefono }}</a>
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div class="cip-row" *ngIf="cliente.email">
+      <span class="cip-icon">✉️</span>
+      <div>
+        <span class="cip-row-label">Email</span>
+        <a class="cip-row-value cip-link" [href]="'mailto:' + cliente.email">{{ cliente.email }}</a>
+      </div>
+    </div>
+
+    <!-- IVA -->
+    <div class="cip-row">
+      <span class="cip-icon">🧾</span>
+      <div>
+        <span class="cip-row-label">IVA aplicado</span>
+        <span class="cip-row-value">
+          <span class="badge badge--enviada">{{ ivaLabel }}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Sin datos -->
+    <p class="cip-empty"
+       *ngIf="!cliente.telefono && !cliente.email && direccionCompleta === '—'">
+      Este cliente no tiene información de contacto registrada.
+    </p>
+
+  </div>
+
+</div>

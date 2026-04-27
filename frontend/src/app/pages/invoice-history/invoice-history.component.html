@@ -1,0 +1,123 @@
+<div class="page-header">
+  <div>
+    <h1>Archivo de facturas</h1>
+    <p>{{ facturas.length }} factura(s) · Total: {{ formatEuro(totalSeleccion) }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn--outline btn--sm" (click)="exportarCSV()">⬇ CSV Hacienda</button>
+    <a routerLink="/nueva-factura" class="btn btn--accent btn--sm">+ Nueva factura</a>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="card filtros-card">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label class="form-label">Buscar</label>
+      <input type="text" class="form-control" placeholder="Nº factura o cliente…"
+             [(ngModel)]="filtro.search" (keyup.enter)="buscar()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-control" [(ngModel)]="filtro.estado">
+        <option value="">Todos</option>
+        <option value="Borrador">Borrador</option>
+        <option value="Enviada">Enviada</option>
+        <option value="Pagada">Pagada</option>
+        <option value="Anulada">Anulada</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cliente</label>
+      <select class="form-control" [(ngModel)]="filtro.cliente_id">
+        <option value="">Todos</option>
+        <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }}</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Año</label>
+      <select class="form-control" [(ngModel)]="filtro.ano">
+        <option *ngFor="let a of anos" [value]="a">{{ a }}</option>
+      </select>
+    </div>
+    <div class="filtros-actions">
+      <button class="btn btn--primary" (click)="buscar()">🔍 Buscar</button>
+      <button class="btn btn--outline" (click)="limpiarFiltros()">✕ Limpiar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="card mt-2">
+  <div class="table-wrap" *ngIf="!cargando">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nº</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th class="text-right">Base</th>
+          <th class="text-right">IVA</th>
+          <th class="text-right">Total</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let f of facturas" [class.row-anulada]="f.estado === 'Anulada'">
+          <td class="text-primary"><strong>#{{ f.numero }}</strong></td>
+          <td class="text-primary">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <button class="cliente-nombre-btn" (click)="verCliente(f.cliente_id)" title="Ver información del cliente">
+              {{ f.cliente_nombre }}
+            </button>
+          </td>
+          <td class="text-money text-right text-primary">{{ formatEuro(f.base_imponible ?? 0) }}</td>
+          <td class="text-money text-right text-primary">{{ formatEuro(f.iva_importe ?? 0) }}</td>
+          <td class="text-money text-right text-primary"><strong>{{ formatEuro(f.total ?? 0) }}</strong></td>
+          <td>
+            <select class="estado-select badge badge--{{ f.estado | lowercase }}"
+                    [value]="f.estado"
+                    (change)="cambiarEstado(f, $any($event.target).value)"
+                    [disabled]="f.estado === 'Anulada'">
+              <option value="Borrador">Borrador</option>
+              <option value="Enviada">Enviada</option>
+              <option value="Pagada">Pagada</option>
+            </select>
+          </td>
+          <td>
+            <div class="actions">
+              <button class="btn btn--outline btn--sm" (click)="abrirPDF(f.id!)" title="Ver PDF">PDF</button>
+              <a class="btn btn--outline btn--sm" [routerLink]="['/nueva-factura', f.id]" title="Editar">✏</a>
+              <button class="btn btn--danger btn--sm"
+                      (click)="anularFactura(f.id!, f.numero!)"
+                      [disabled]="f.estado === 'Anulada'"
+                      title="Anular">✕</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!facturas.length">
+          <td colspan="8" style="text-align:center;padding:32px;color:var(--color-muted)">
+            No se encontraron facturas con esos filtros
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Skeleton loading -->
+  <div *ngIf="cargando">
+    <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+  </div>
+</div>
+
+<div class="toast" [class.toast--success]="toast.tipo==='success'" [class.toast--error]="toast.tipo==='error'" *ngIf="toast">
+  {{ toast.msg }}
+</div>
+
+<!-- Popup info cliente -->
+<app-cliente-info-popup
+  *ngIf="clientePopup"
+  [cliente]="clientePopup"
+  (cerrar)="cerrarPopup()">
+</app-cliente-info-popup>

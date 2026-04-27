@@ -1,0 +1,69 @@
+.filtros-card { padding: 16px 20px; }
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr 1fr auto;
+  gap: 12px;
+  align-items: flex-end;
+  .form-group { margin-bottom: 0; }
+}
+
+.filtros-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.row-anulada td {
+  opacity: .45;
+  text-decoration: line-through;
+  &:last-child { text-decoration: none; opacity: 1; }
+}
+
+.estado-select {
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  appearance: none;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11.5px;
+}
+
+.skeleton-row {
+  height: 48px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* Nombre de cliente clickable */
+.cliente-nombre-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font-size: inherit;
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.7; }
+}
+
+/* Specific to quotes modal */
+.justify-start { justify-content: flex-start; }
+.flex-1 { flex: 1; }
+.text-left { text-align: left; }
+.font-bold { font-weight: bold; }
+.text-sm { font-size: 12px; }
+.text-2xl { font-size: 24px; }
+.mr-2 { margin-right: 12px; }
+.mb-4 { margin-bottom: 16px; }
+.flex-column { flex-direction: column; }

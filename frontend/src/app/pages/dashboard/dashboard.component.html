@@ -1,0 +1,121 @@
+<div class="page-header">
+  <div>
+    <h1>Dashboard {{ anoActual }}</h1>
+    <p>Resumen de facturacion del año en curso</p>
+  </div>
+  <div class="d-flex gap-2">
+    <button class="btn btn--outline btn--sm" (click)="exportarCSV()">
+      ⬇ Exportar CSV Hacienda
+    </button>
+    <button class="btn btn--outline btn--sm" (click)="cargarDatos()">
+      🔄 Actualizar
+    </button>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid" *ngIf="!cargando">
+  <div class="stat-card">
+    <div class="stat-label">Facturacion neta (con IVA)</div>
+    <div class="stat-value text-primary">{{ formatEuro(totalNeto) }}</div>
+    <div class="stat-sub">Base: {{ formatEuro(totalBase) }} · IVA: {{ formatEuro(totalIVA) }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total facturas emitidas</div>
+    <div class="stat-value">{{ numFacturas }}</div>
+    <div class="stat-sub">En {{ anoActual }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Facturas enviadas</div>
+    <div class="stat-value text-blue">{{ contarEstado('Enviada') }}</div>
+    <div class="stat-sub">Pendientes de cobro</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Facturas pagadas</div>
+    <div class="stat-value text-green">{{ contarEstado('Pagada') }}</div>
+    <div class="stat-sub">Cobradas este año</div>
+  </div>
+</div>
+
+<div class="skeleton-grid" *ngIf="cargando">
+  <div class="skeleton-card" *ngFor="let i of [1,2,3,4]"></div>
+</div>
+
+<!-- Grafico de barras mensual -->
+<div class="row-2 mt-2">
+  <div class="card">
+    <h3 class="card-title">Facturacion mensual {{ anoActual }}</h3>
+    <div class="bar-chart" *ngIf="stats">
+      <div class="bar-col" *ngFor="let mes of meses; let i = index">
+        <div class="bar-wrap">
+          <div class="bar" [style.height.%]="getBarHeight((i+1).toString())"
+               [class.bar--active]="getBarHeight((i+1).toString()) > 0"
+               [title]="formatEuro(getMesImporte(i+1))">
+          </div>
+        </div>
+        <span class="bar-label">{{ mes }}</span>
+      </div>
+    </div>
+    <div class="empty-chart" *ngIf="!stats || !stats.por_mes.length">
+      Sin datos para este año
+    </div>
+  </div>
+
+  <!-- Estados -->
+  <div class="card">
+    <h3 class="card-title">Estado de facturas</h3>
+    <div class="estado-list" *ngIf="stats">
+      <div class="estado-item" *ngFor="let e of stats.por_estado">
+        <span class="badge badge--{{ e.estado | lowercase }}">{{ e.estado }}</span>
+        <span class="estado-count">{{ e.count }}</span>
+      </div>
+      <div class="empty-chart" *ngIf="!stats.por_estado.length">Sin datos</div>
+    </div>
+  </div>
+</div>
+
+<!-- Últimas facturas -->
+<div class="card mt-2">
+  <div class="d-flex justify-between align-center" style="margin-bottom:16px">
+    <h3 class="card-title">Últimas facturas</h3>
+    <a routerLink="/facturas" class="btn btn--outline btn--sm">Ver todas →</a>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nº</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Base</th>
+          <th>IVA</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let f of ultimasFacturas">
+          <td><strong>#{{ f.numero }}</strong></td>
+          <td>{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>{{ f.cliente_nombre }}</td>
+          <td class="text-money text-right">{{ formatEuro(f.base_imponible || 0) }}</td>
+          <td class="text-money text-right text-muted">{{ formatEuro(f.iva_importe || 0) }}</td>
+          <td class="text-money text-right"><strong>{{ formatEuro(f.total || 0) }}</strong></td>
+          <td><span class="badge badge--{{ f.estado | lowercase }}">{{ f.estado }}</span></td>
+          <td>
+            <div class="actions">
+              <button class="btn btn--outline btn--sm" (click)="abrirPDF(f.id!)">PDF</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!ultimasFacturas.length">
+          <td colspan="8" style="text-align:center;color:var(--color-muted);padding:24px">
+            No hay facturas todavia
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

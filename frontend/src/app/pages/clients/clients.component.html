@@ -1,0 +1,124 @@
+<div class="page-header">
+  <div>
+    <h1 class="text-dark">Clientes</h1>
+    <p>{{ clientes.length }} cliente(s) registrado(s)</p>
+  </div>
+  <button class="btn btn--accent" (click)="abrirNuevo()">+ Nuevo cliente</button>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>NIF/CIF</th>
+          <th>Ciudad</th>
+          <th>Provincia</th>
+          <th>IVA</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of clientes">
+          <td>
+            <button class="cliente-nombre-btn" (click)="verCliente(c)" title="Ver información">
+              <strong>{{ c.nombre }}</strong>
+            </button>
+          </td>
+          <td class="text-primary">{{ c.nif }}</td>
+          <td class="text-primary">{{ c.ciudad }}</td>
+          <td class="text-primary">{{ c.provincia }}</td>
+          <td><span class="badge badge--enviada">{{ c.iva * 100 | number:'1.0-0' }}%</span></td>
+          <td class="text-primary">{{ c.email || '—' }}</td>
+          <td>
+            <div class="actions">
+              <button class="btn btn--outline btn--sm" (click)="editar(c)">✏ Editar</button>
+              <button class="btn btn--danger btn--sm" (click)="eliminar(c)">✕</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="!clientes.length">
+          <td colspan="7" style="text-align:center;padding:32px;color:var(--color-muted)">
+            No hay clientes. Añade el primero haciendo clic en "+ Nuevo cliente".
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" *ngIf="mostrarModal" (click)="cerrarModal()"></div>
+<div class="modal" *ngIf="mostrarModal">
+  <div class="modal-header">
+    <h2>{{ editandoId ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
+    <button class="modal-close" (click)="cerrarModal()">✕</button>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="guardar()" class="modal-body">
+    <div class="form-row form-row--2">
+      <div class="form-group">
+        <label class="form-label">Nombre / Razón social *</label>
+        <input class="form-control" formControlName="nombre" [class.is-invalid]="isInvalid('nombre')">
+        <span class="form-error" *ngIf="isInvalid('nombre')">Campo obligatorio</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">NIF / CIF *</label>
+        <input class="form-control" formControlName="nif" [class.is-invalid]="isInvalid('nif')">
+        <span class="form-error" *ngIf="form.get('nif')?.hasError('required') && form.get('nif')?.touched">Campo obligatorio</span>
+        <span class="form-error" *ngIf="form.get('nif')?.hasError('invalidFormat') && form.get('nif')?.touched">Formato inválido (8 dígitos + letra o X/Y/Z + 7 dígitos + letra)</span>
+        <span class="form-error" *ngIf="form.get('nif')?.hasError('invalidLetter') && form.get('nif')?.touched">Letra de control incorrecta</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dirección</label>
+      <input class="form-control" formControlName="direccion">
+    </div>
+    <div class="form-row form-row--3">
+      <div class="form-group">
+        <label class="form-label">Ciudad</label>
+        <input class="form-control" formControlName="ciudad">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Provincia</label>
+        <input class="form-control" formControlName="provincia">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Código postal</label>
+        <input class="form-control" formControlName="cp">
+      </div>
+    </div>
+    <div class="form-row form-row--3">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" formControlName="email" [class.is-invalid]="isInvalid('email')">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input class="form-control" formControlName="telefono">
+      </div>
+      <div class="form-group">
+        <label class="form-label">IVA (0.21 = 21%)</label>
+        <input type="number" class="form-control" formControlName="iva" step="0.01" min="0" max="1">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn--outline" (click)="cerrarModal()">Cancelar</button>
+      <button type="submit" class="btn btn--primary" [disabled]="guardando">
+        {{ guardando ? 'Guardando…' : 'Guardar cliente' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" [class.toast--success]="toast.tipo==='success'" [class.toast--error]="toast.tipo==='error'" *ngIf="toast">
+  {{ toast.msg }}
+</div>
+
+<!-- Popup info cliente -->
+<app-cliente-info-popup
+  *ngIf="clientePopup"
+  [cliente]="clientePopup"
+  (cerrar)="cerrarPopup()">
+</app-cliente-info-popup>
