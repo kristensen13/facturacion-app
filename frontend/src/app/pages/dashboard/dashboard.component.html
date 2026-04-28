@@ -27,7 +27,7 @@
   </div>
   <div class="stat-card">
     <div class="stat-label">Facturas enviadas</div>
-    <div class="stat-value text-blue">{{ contarEstado('Enviada') }}</div>
+    <div class="stat-value">{{ contarEstado('Enviada') }}</div>
     <div class="stat-sub">Pendientes de cobro</div>
   </div>
   <div class="stat-card">
@@ -97,12 +97,12 @@
       </thead>
       <tbody>
         <tr *ngFor="let f of ultimasFacturas">
-          <td><strong>#{{ f.numero }}</strong></td>
-          <td>{{ f.fecha | date:'dd/MM/yyyy' }}</td>
-          <td>{{ f.cliente_nombre }}</td>
-          <td class="text-money text-right">{{ formatEuro(f.base_imponible || 0) }}</td>
-          <td class="text-money text-right text-muted">{{ formatEuro(f.iva_importe || 0) }}</td>
-          <td class="text-money text-right"><strong>{{ formatEuro(f.total || 0) }}</strong></td>
+          <td class="text-primary"><strong>#{{ f.numero }}</strong></td>
+          <td class="text-primary">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+          <td class="text-primary">{{ f.cliente_nombre }}</td>
+          <td class="text-money text-right text-primary">{{ formatEuro(f.base_imponible || 0) }}</td>
+          <td class="text-money text-right text-primary">{{ formatEuro(f.iva_importe || 0) }}</td>
+          <td class="text-money text-right text-primary"><strong>{{ formatEuro(f.total || 0) }}</strong></td>
           <td><span class="badge badge--{{ f.estado | lowercase }}">{{ f.estado }}</span></td>
           <td>
             <div class="actions">
