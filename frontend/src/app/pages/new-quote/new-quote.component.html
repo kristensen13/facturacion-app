@@ -82,8 +82,8 @@
 
           <div class="linea-row" *ngFor="let linea of lineas; let i = index" [formGroupName]="i">
             <div class="linea-col-concepto">
+              <label tuiLabel>Concepto</label>
               <tui-input formControlName="concepto">
-                Concepto
                 <input tuiTextfield list="catalogo-list" />
               </tui-input>
               <datalist id="catalogo-list">
@@ -102,7 +102,7 @@
           </div>
         </div>
 
-        <button type="button" tuiButton appearance="outline" size="s" class="mt-1" (click)="agregarLinea()">
+        <button type="button" tuiButton appearance="primary" size="s" class="mt-1" (click)="agregarLinea()">
           + Añadir concepto
         </button>
 
