@@ -103,9 +103,52 @@ db.exec(`
     BEGIN
       UPDATE facturas SET updated_at = datetime('now') WHERE id = NEW.id;
     END;
-
-  CREATE UNIQUE INDEX IF NOT EXISTS idx_clientes_nif ON clientes(nif);
-  CREATE UNIQUE INDEX IF NOT EXISTS idx_catalogo_concepto ON catalogo(concepto);
 `);
+
+// ── Migración: limpiar duplicados y crear índices UNIQUE ─────────────────────
+// CREATE TABLE IF NOT EXISTS no modifica tablas existentes, así que los índices
+// se crean por separado. Si hay duplicados previos, se limpian primero.
+(function migrateUniqueIndexes() {
+  // Helper: limpia duplicados de una tabla antes de crear el índice UNIQUE
+  function cleanAndIndex(table, uniqueCol, fkTables) {
+    // Comprobar si el índice ya existe
+    const idx = db.prepare(
+      "SELECT 1 FROM sqlite_master WHERE type='index' AND name=?"
+    ).get(`idx_${table}_${uniqueCol}`);
+    if (idx) return; // ya migrado
+
+    // Eliminar duplicados: mantener el de menor id por cada valor único
+    const dupes = db.prepare(
+      `SELECT id, ${uniqueCol} FROM ${table} WHERE id NOT IN (SELECT MIN(id) FROM ${table} GROUP BY ${uniqueCol})`
+    ).all();
+
+    for (const dup of dupes) {
+      const original = db.prepare(
+        `SELECT MIN(id) as id FROM ${table} WHERE ${uniqueCol} = ?`
+      ).get(dup[uniqueCol]);
+      // Reasignar foreign keys antes de borrar
+      for (const fk of fkTables) {
+        db.prepare(`UPDATE ${fk.table} SET ${fk.col} = ? WHERE ${fk.col} = ?`).run(original.id, dup.id);
+      }
+      db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(dup.id);
+    }
+
+    if (dupes.length > 0) {
+      console.log(`🧹 ${table}: eliminados ${dupes.length} duplicados`);
+    }
+
+    // Reactivar registros que estén inactivos
+    db.prepare(`UPDATE ${table} SET activo = 1 WHERE activo = 0`).run();
+
+    // Ahora sí crear el índice
+    db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_${table}_${uniqueCol} ON ${table}(${uniqueCol})`);
+  }
+
+  cleanAndIndex('clientes', 'nif', [
+    { table: 'facturas', col: 'cliente_id' },
+    { table: 'presupuestos', col: 'cliente_id' }
+  ]);
+  cleanAndIndex('catalogo', 'concepto', []);
+})();
 
 module.exports = db;
