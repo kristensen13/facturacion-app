@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { TuiRootModule, TuiDialogModule, TuiAlertModule, TuiButtonModule, TuiTextfieldControllerModule, TuiDataListModule } from '@taiga-ui/core';
+import { TuiRootModule, TuiDialogModule, TuiAlertModule, TuiButtonModule, TuiTextfieldControllerModule, TuiDataListModule, TuiDropdownModule } from '@taiga-ui/core';
 import { TuiInputModule, TuiInputNumberModule, TuiSelectModule, TuiInputDateModule, TuiDataListWrapperModule, TuiTextAreaModule } from '@taiga-ui/kit';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -48,8 +48,9 @@ import { NewQuoteComponent }         from './pages/new-quote/new-quote.component
     TuiButtonModule,
     TuiTextfieldControllerModule,
     TuiDataListModule,
-    TuiDataListWrapperModule
-  ],
+    TuiDataListWrapperModule,
+    TuiDropdownModule
+],
   providers: [],
   bootstrap: [AppComponent]
 })
