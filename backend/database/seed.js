@@ -2,11 +2,13 @@
 const db = require('./db');
 
 // Si ya hay datos no hacer nada (evita duplicados en cada arranque)
-const yaInicializado = db.prepare('SELECT COUNT(*) as count FROM empresa').get();
-if (yaInicializado.count > 0) {
-  console.log('✅ Base de datos ya inicializada, omitiendo seed.');
-  return;  // <- sale sin hacer nada
-}
+(function runSeed() {
+  const empresaCount = db.prepare('SELECT COUNT(*) as count FROM empresa').get();
+  const clienteCount = db.prepare('SELECT COUNT(*) as count FROM clientes').get();
+  if (empresaCount.count > 0 || clienteCount.count > 0) {
+    console.log('✅ Base de datos ya inicializada, omitiendo seed.');
+    return;  // sale de la función sin hacer nada
+  }
 
 console.log('🌱 Iniciando seed de la base de datos...');
 
@@ -96,3 +98,4 @@ for (const f of historial) {
 console.log('✅ 5 facturas históricas importadas');
 
 console.log('\n🎉 Seed completado. Base de datos lista.');
+})(); // cierre de la IIFE

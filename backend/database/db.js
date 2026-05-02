@@ -32,7 +32,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS clientes (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre    TEXT NOT NULL,
-    nif       TEXT NOT NULL,
+    nif       TEXT NOT NULL UNIQUE,
     direccion TEXT NOT NULL,
     provincia TEXT NOT NULL,
     ciudad    TEXT NOT NULL,
@@ -46,7 +46,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS catalogo (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    concepto     TEXT NOT NULL,
+    concepto     TEXT NOT NULL UNIQUE,
     descripcion  TEXT,
     precio       REAL,
     activo       INTEGER NOT NULL DEFAULT 1
@@ -103,6 +103,9 @@ db.exec(`
     BEGIN
       UPDATE facturas SET updated_at = datetime('now') WHERE id = NEW.id;
     END;
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_clientes_nif ON clientes(nif);
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_catalogo_concepto ON catalogo(concepto);
 `);
 
 module.exports = db;
